@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "apes", about = "Privilege elevation via OpenAPE grants")]
+#[command(name = "apes", about = "Privilege elevation via OpenApe grants")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>,
@@ -27,9 +27,9 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Enroll this machine as an OpenAPE agent
+    /// Enroll this machine as an OpenApe agent
     Enroll {
-        /// OpenAPE IdP URL
+        /// OpenApe IdP URL
         #[arg(long)]
         server: String,
 

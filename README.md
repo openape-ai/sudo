@@ -1,6 +1,6 @@
 # openape-sudo
 
-Privilege elevation via the OpenAPE grant system. A Rust binary (`apes`).
+Privilege elevation via the OpenApe grant system. A Rust binary (`apes`).
 
 ## Build
 
