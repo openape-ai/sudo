@@ -1,0 +1,6 @@
+{
+  "name": "openape-sudo",
+  "description": "Manage agent enrollment and privileged command execution via the OpenApe grant system (apes CLI).",
+  "version": "0.1.0",
+  "triggers": ["apes", "sudo", "privilege", "elevated", "grant", "enroll", "openape"]
+}
