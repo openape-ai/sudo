@@ -29,9 +29,6 @@ pub enum Error {
     #[error("Exec failed: {0}")]
     Exec(String),
 
-    #[error("Command not found: {0}")]
-    NotFound(String),
-
     #[error("Key does not match any registered agent")]
     NoMatchingAgent,
 
@@ -63,7 +60,6 @@ impl Error {
             Error::Timeout { .. } => 4,
             Error::Jwt(_) | Error::CmdHashMismatch { .. } => 5,
             Error::Exec(_) | Error::Privilege(_) => 126,
-            Error::NotFound(_) => 127,
             Error::Http(_) | Error::Io(_) | Error::Json(_) => 1,
         }
     }
@@ -93,9 +89,6 @@ impl Error {
             }
             Error::Exec(msg) => {
                 serde_json::json!({"error": "exec", "message": msg})
-            }
-            Error::NotFound(cmd) => {
-                serde_json::json!({"error": "not_found", "command": cmd})
             }
             Error::NoMatchingAgent => {
                 serde_json::json!({"error": "no_matching_agent", "message": self.to_string()})

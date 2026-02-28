@@ -140,9 +140,10 @@ fn run_sudo(cli: &Cli) -> Result<(), Error> {
     // 14. Sanitize environment
     exec::sanitize_env();
 
-    // 14b. Switch user if --run-as was specified
-    if let Some(ref run_as) = cli.run_as {
-        exec::switch_user(run_as)?;
+    // 14b. Switch user (default: root; override with --run-as <user>)
+    match cli.run_as.as_deref() {
+        Some(user) => exec::switch_user(user)?,
+        None => exec::become_root()?,
     }
 
     // 15. Write audit log

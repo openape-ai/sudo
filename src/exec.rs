@@ -25,6 +25,21 @@ pub fn elevate() -> Result<(), Error> {
     Ok(())
 }
 
+/// Make the process fully root (real + effective UID/GID).
+/// Called when no --run-as is specified — the default for privilege elevation.
+pub fn become_root() -> Result<(), Error> {
+    setgid(nix::unistd::Gid::from_raw(0))
+        .map_err(|e| Error::Privilege(format!("Failed to setgid(0): {e}")))?;
+    setuid(Uid::from_raw(0))
+        .map_err(|e| Error::Privilege(format!("Failed to setuid(0): {e}")))?;
+    unsafe {
+        std::env::set_var("HOME", "/var/root");
+        std::env::set_var("USER", "root");
+        std::env::set_var("LOGNAME", "root");
+    }
+    Ok(())
+}
+
 /// Switch to a different user (must be called while euid is root).
 /// Sets GID first, then UID (order matters — can't setgid after dropping root).
 /// This is a one-way operation: the process cannot return to root.
@@ -52,7 +67,11 @@ pub fn switch_user(username: &str) -> Result<(), Error> {
 }
 
 /// Remove dangerous environment variables before exec.
+/// Preserves the caller's PATH (inherited from the invoking user).
 pub fn sanitize_env() {
+    // Preserve the caller's PATH before sanitizing
+    let caller_path = std::env::var("PATH").ok();
+
     for var in [
         "LD_PRELOAD",
         "LD_LIBRARY_PATH",
@@ -71,13 +90,10 @@ pub fn sanitize_env() {
         unsafe { std::env::remove_var(var) };
     }
 
-    // SAFETY: PATH is set to a known-safe value before execvp
-    unsafe {
-        std::env::set_var(
-            "PATH",
-            "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-        );
-    }
+    // SAFETY: Restore the caller's PATH (or fall back to a safe default)
+    let path = caller_path
+        .unwrap_or_else(|| "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin".to_string());
+    unsafe { std::env::set_var("PATH", &path) };
 }
 
 /// Replace the current process with the given command using execvp.
@@ -103,7 +119,8 @@ pub fn run_command(cmd: &[String]) -> Result<(), Error> {
     nix::unistd::execvp(&program, &arg_refs)
         .map_err(|e| {
             if e == nix::errno::Errno::ENOENT {
-                Error::NotFound(cmd[0].clone())
+                let path = std::env::var("PATH").unwrap_or_else(|_| "(unset)".to_string());
+                Error::Exec(format!("Command not found: {}. PATH was: {}", cmd[0], path))
             } else {
                 Error::Exec(format!("execvp failed: {e}"))
             }
