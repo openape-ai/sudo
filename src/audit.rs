@@ -76,7 +76,6 @@ fn write_entry(config: &Config, entry: &serde_json::Value) {
 mod tests {
     use super::*;
     use crate::config::{SecurityConfig, TlsConfig};
-    use std::path::PathBuf;
 
     fn test_config(dir: &std::path::Path) -> Config {
         Config {

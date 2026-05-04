@@ -256,8 +256,8 @@ fn print_summary(path: &Path, doc: &Table) {
         .unwrap_or(0);
     eprintln!("✓ wrote {} (mode 0600)", path.display());
     eprintln!("Trust summary:");
-    eprintln!("  allowed_issuers:   {}", n_issuers);
-    eprintln!("  allowed_approvers: {}", n_approvers);
+    eprintln!("  allowed_issuers:   {n_issuers}");
+    eprintln!("  allowed_approvers: {n_approvers}");
 }
 
 #[cfg(test)]
